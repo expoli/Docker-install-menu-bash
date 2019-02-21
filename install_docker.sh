@@ -139,9 +139,12 @@ Uninstall_Docker(){
 # 更新Docker
 Update_Docker(){
     if [[ ${release} == "centos" ]]; then
-        sudo yum update -y docker 
+        sudo yum update -y docker*
+		sudo yum info docker* 
     else
-        sudo apt-get update -y docker
+        sudo apt-get update
+		sudo apt-get upgrade -y docker
+		sudo apt show docker
     fi
 }
 # 安装docker-compose
