@@ -6,14 +6,14 @@ export PATH
 #=================================================
 #	System Required: CentOS/Debian/Ubuntu
 #	Description: docker install
-#	Version: 1.0.0
+#	Version: 1.0.1
 #	Author: zzutcy
 #	Blog: http://zzucty.top
 #   created 2019.02.21
 #   email zzucty@gmail.com,zzutcy@qq.com
 #=================================================
 
-sh_ver="1.0.0"
+sh_ver="1.0.1"
 server_file="/usr/bin"
 docker_daemon_json="/etc/docker/daemon.json"
 
@@ -41,25 +41,48 @@ check_sys(){
     fi
 	bit=`uname -m`
 }
-
+# 安装依赖
 Installation_dependency(){
     if [[ ${release} == "centos" ]]; then
         sudo yum -y update 
-        sudo yum install -y yum-utils device-mapper-persistent-data lvm2 
+		sudo yum remove -y docker \
+				docker-client \
+				docker-client-latest \
+				docker-common \
+				docker-latest \
+				docker-latest-logrotate \
+				docker-logrotate \
+				docker-engine
+        sudo yum install -y yum-utils \
+				device-mapper-persistent-data \
+				lvm2 
         sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-        sudo yum install -y docker-ce docker-ce-cli containerd.io
+        sudo yum install -y docker-ce \
+				docker-ce-cli \
+				containerd.io
     else
         sudo apt-get update -y
-        sudo apt-get remove -y docker docker-engine docker.io containerd runc
-        sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+        sudo apt-get remove -y docker \
+				docker-engine \
+				docker.io \
+				containerd \
+				runc
+        sudo apt-get install -y \
+				apt-transport-https \
+				ca-certificates \
+				curl \
+				gnupg-agent \
+				software-properties-common
         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
         sudo apt-key fingerprint 0EBFCD88
         sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
         sudo apt-get update -y
-        sudo apt-get install docker-ce docker-ce-cli containerd.io
+        sudo apt-get install -y docker-ce \
+				docker-ce-cli \
+				containerd.io
     fi
 }
-
+# 设置容器加速源为 docker 中国
 Set_Docker_Fast_Mirrors(){
     mkdir -p /etc/docker
     cat > ${docker_daemon_json}<<-EOF
@@ -69,7 +92,7 @@ Set_Docker_Fast_Mirrors(){
 EOF
     Restart_Docker
 }
-
+# 安装
 Install_Docker(){
 	[[ -e "${server_file}/docker" ]] && echo -e "${Error} 检测到 Docker 已安装 ! 请卸载现有版本再进行安装!" && exit 1
 	echo -e "${Info} 开始安装/配置 依赖..."
@@ -85,11 +108,11 @@ Start_Docker(){
     sudo systemctl start docker
     sudo systemctl status docker
 }
-# 
+# 停止
 Stop_Docker(){
     sudo systemctl stop docker
 }
-# 
+# 重启
 Restart_Docker(){
     sudo systemctl daemon-reload
     sudo systemctl restart docker
@@ -98,16 +121,19 @@ Restart_Docker(){
 Uninstall_Docker(){
     if [[ ${release} == "centos" ]]; then
         sudo yum remove -y docker \
-                  docker-client \
-                  docker-client-latest \
-                  docker-common \
-                  docker-latest \
-                  docker-latest-logrotate \
-                  docker-logrotate \
-                  docker-engine
+				docker-client \
+				docker-client-latest \
+				docker-common \
+				docker-latest \
+				docker-latest-logrotate \
+				docker-logrotate \
+				docker-engine
     else
-
-        sudo apt-get remove docker docker-engine docker.io containerd runc -y
+        sudo apt-get remove -y docker \
+				docker-engine \
+				docker.io \
+				containerd \
+				runc 
     fi
 }
 # 更新Docker
@@ -115,8 +141,7 @@ Update_Docker(){
     if [[ ${release} == "centos" ]]; then
         sudo yum update -y docker 
     else
-
-        sudo apt-get update docker -y
+        sudo apt-get update -y docker
     fi
 }
 # 安装docker-compose
@@ -125,23 +150,23 @@ Install_Docker_compose(){
     sudo chmod +x /usr/local/bin/docker-compose
     docker-compose --version
 }
-# 
+# 查看 docker 的运行状态
 View_Docker_Status(){
     check_pid_server
     sudo systemctl status docker
 }
-# 
+# 查看 docker 的PID
 check_pid_server(){
 	PID=`ps -ef| grep "docker"| grep -v grep| grep -v ".sh"| grep -v "init.d"| grep -v "service"| awk '{print $2}'`
 }
-
+# 脚本升级
 Update_Shell(){
-	# sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/status.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
-	# [[ -z ${sh_new_ver} ]] && echo -e "${Error} 无法链接到 Github !" && exit 0
-	# wget -N --no-check-certificate "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/status.sh" && chmod +x status.sh
+	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/zzutcy/Docker-install-menu-bash/master/install_docker.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
+	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 无法链接到 Github !" && exit 0
+	wget -N --no-check-certificate "https://raw.githubusercontent.com/zzutcy/Docker-install-menu-bash/master/install_docker.sh" && chmod +x install_docker.sh
 	echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !(注意：因为更新方式为直接覆盖当前运行的脚本，所以可能下面会提示一些报错，无视即可)" && exit 0
 }
-
+# 主菜单
 menu_server(){
 echo && echo -e "  Docker 一键安装管理脚本 ${Red_font_prefix}[v${sh_ver}]${Font_color_suffix}
   -- zzutcy | zzutcy/shell --
