@@ -6,14 +6,14 @@ export PATH
 #=================================================
 #	System Required: CentOS/Debian/Ubuntu
 #	Description: docker install
-#	Version: 1.0.1
-#	Author: zzutcy
-#	Blog: http://zzucty.top
+#	Version: 1.0.2
+#	Author: expoli
+#	Blog: http://expoli.tech
 #   created 2019.02.21
-#   email zzucty@gmail.com,zzutcy@qq.com
+#   email me@expoli.tech
 #=================================================
 
-sh_ver="1.0.1"
+sh_ver="1.0.2"
 server_file="/usr/bin"
 docker_daemon_json="/etc/docker/daemon.json"
 
@@ -84,12 +84,8 @@ Installation_dependency(){
 }
 # 设置容器加速源为 docker 中国
 Set_Docker_Fast_Mirrors(){
-    mkdir -p /etc/docker
-    cat > ${docker_daemon_json}<<-EOF
-{
-  "registry-mirrors": ["https://registry.docker-cn.com"]
-}
-EOF
+	# https://www.daocloud.io/mirror
+    curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://f1361db2.m.daocloud.io
     Restart_Docker
 }
 # 安装
@@ -129,11 +125,9 @@ Uninstall_Docker(){
 				docker-logrotate \
 				docker-engine
     else
-        sudo apt-get remove -y docker \
-				docker-engine \
-				docker.io \
-				containerd \
-				runc 
+        sudo apt-get remove -y docker-ce \
+				docker-ce-cli \
+				containerd.io
     fi
 }
 # 更新Docker
@@ -149,9 +143,19 @@ Update_Docker(){
 }
 # 安装docker-compose
 Install_Docker_compose(){
-    sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-    docker-compose --version
+	if [[ ${release}=="centos" ]]; then
+        sudo yum install -y docker-compose
+    elif [[ ${release}=="debian" ]]; then
+        sudo apt-get install -y docker-compose
+	elif [[ ${release}=="ubuntu" ]]; then
+        sudo apt-get install -y docker-compose
+	elif [[ ${release}=="arch" ]]; then
+		sudo pacman -S docker-compose --noconfirm
+    else 
+		sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+		sudo chmod +x /usr/local/bin/docker-compose
+		docker-compose --version
+	fi
 }
 # 查看 docker 的运行状态
 View_Docker_Status(){
@@ -164,15 +168,15 @@ check_pid_server(){
 }
 # 脚本升级
 Update_Shell(){
-	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/zzutcy/Docker-install-menu-bash/master/install_docker.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
+	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/expoli/Docker-install-menu-bash/master/install_docker.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
 	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 无法链接到 Github !" && exit 0
-	wget -N --no-check-certificate "https://raw.githubusercontent.com/zzutcy/Docker-install-menu-bash/master/install_docker.sh" && chmod +x install_docker.sh
+	wget -N --no-check-certificate "https://raw.githubusercontent.com/expoli/Docker-install-menu-bash/master/install_docker.sh" && chmod +x install_docker.sh
 	echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !(注意：因为更新方式为直接覆盖当前运行的脚本，所以可能下面会提示一些报错，无视即可)" && exit 0
 }
 # 主菜单
 menu_server(){
 echo && echo -e "  Docker 一键安装管理脚本 ${Red_font_prefix}[v${sh_ver}]${Font_color_suffix}
-  -- zzutcy | zzutcy/shell --
+  -- expoli | expoli/shell --
   
  ${Green_font_prefix} 0.${Font_color_suffix} 升级脚本
  ————————————
