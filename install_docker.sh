@@ -143,13 +143,13 @@ Update_Docker(){
 }
 # 安装docker-compose
 Install_Docker_compose(){
-	if [[ ${release}=="centos" ]]; then
+	if [[ ${release} == "centos" ]]; then
         sudo yum install -y docker-compose
-    elif [[ ${release}=="debian" ]]; then
+    elif [[ ${release} == "debian" ]]; then
         sudo apt-get install -y docker-compose
-	elif [[ ${release}=="ubuntu" ]]; then
+	elif [[ ${release} == "ubuntu" ]]; then
         sudo apt-get install -y docker-compose
-	elif [[ ${release}=="arch" ]]; then
+	elif [[ ${release} == "arch" ]]; then
 		sudo pacman -S docker-compose --noconfirm
     else 
 		sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
